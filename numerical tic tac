@@ -7,12 +7,20 @@
 #include"BoardGame_Classes.h"
 #include <bits/stdc++.h>
 
+
+vector<int> vodd = {1, 3, 5, 7, 9};
+vector<int> veven = {2, 4, 6, 8};
+
+
 using namespace std;
 
 template<typename T>
 class numericalttt_board:public Board<T>{
+private:
+    vector<int>vec;
 public:
-    numericalttt_board();
+        numericalttt_board();
+        bool isvalid(int x, int y,T symbol);
         bool update_board (int x , int y , T symbol);
         void display_board () ;
         bool is_win() ;
@@ -26,8 +34,7 @@ template<typename T>
 class numericalttt_player:public Player<T>{
 public:
     numericalttt_player(string name , T symbol);
-     void getmove(int& x, int& y) = 0;
-   // T getsymbol();
+     void getmove(int& x, int& y) ;
 
 };
 
@@ -42,17 +49,20 @@ public:
 
 
 
-
 ///----------------Implementation
+
+
+
+
 
 
 // Constructor for X_O_Board
 template <typename T>
 numericalttt_board<T>::numericalttt_board()  {
     this->rows = this->columns = 3;
-    this->board = new char*[this->rows];
+    this->board = new T*[this->rows];
     for (int i = 0; i < this->rows; i++) {
-        this->board[i] = new char[this->columns];
+        this->board[i] = new T[this->columns];
         for (int j = 0; j < this->columns; j++) {
             this->board[i][j] = 0;
         }
@@ -60,23 +70,54 @@ numericalttt_board<T>::numericalttt_board()  {
     this->n_moves = 0;
 }
 
+template<typename T>
+bool numericalttt_board<T>::isvalid(int x,int y,T symbol) {
+        if(this->n_moves%2==0){
+            auto it = find(veven.begin(), veven.end(), symbol);
+            for (int i = 0; i < veven.size(); ++i) {
+                if(it!=veven.end()){
+                    veven.erase(it);
+                    return true;}
+                else{
+                    cout<<"Enter avalid number: "<<endl;
+
+                    return false;}
+            }
+        }
+        else{
+            auto it = find(vodd.begin(), vodd.end(), symbol);
+            for (int i = 0; i < vodd.size(); ++i) {
+                if(it!=vodd.end()){
+                    vodd.erase(it);
+                    return true;}
+                else{
+                    cout<<"Enter avalid number: "<<endl;
+                    return false;}
+            }
+        }
+    }
 
 template <typename T>
 bool numericalttt_board<T>::update_board(int x, int y, T mark) {
     // Only update if move is valid
-    if (!(x < 0 || x >= this->rows || y < 0 || y >= this->columns) && (this->board[x][y] == 0|| mark <1 || mark>9)) {
-        if (mark <1 || mark>9){
+    if(isvalid(x,y,mark)){
+    if (!(x < 0 || x >= this->rows || y < 0 || y >= this->columns) && (this->board[x][y] == 0|| mark == 0)) {
+        if (mark == 0){
             this->n_moves--;
             this->board[x][y] = 0;
         }
-        else {
-            this->n_moves++;
-            this->board[x][y] = mark;
-        }
+else{this->n_moves++;
+    this->board[x][y]=mark;
+}
 
-        return true;
+
+
+        }
     }
-    return false;
+    else
+        return false;
+
+    return true;
 }
 
 // Display the board and the pieces on it
@@ -122,12 +163,20 @@ bool numericalttt_board<T>::game_is_over() {
 }
 //players
 template <typename T>
-numericalttt_player<T>::numericalttt_player (string name, T symbol) : Player<T>(name, symbol) {}
+numericalttt_player<T>::numericalttt_player (string name, T symbol) : Player<T>(name, symbol) {
+
+}
 
 template <typename T>
 void numericalttt_player<T>::getmove(int& x, int& y) {
-    cout << "\nPlease enter your move x and y (0 to 2) separated by spaces: ";
+    cout << this->getname() <<",please enter your move x and y (0 to 2) separated by spaces: ";
     cin >> x >> y;
+    cout<<" Enter number: \n";
+
+int number;cin>>number;
+this->symbol=number;
+
+
 }
 
 //random
@@ -141,7 +190,8 @@ template <typename T>
 void numericalttt_random_player<T>::getmove(int& x, int& y) {
     x = rand() % this->dimension;  // Random number between 0 and 2
     y = rand() % this->dimension;
-
+    int number=rand()%9+1;
+    this->symbol=number;
 }
 
 
@@ -150,136 +200,6 @@ void numericalttt_random_player<T>::getmove(int& x, int& y) {
 
 #endif //NUMERICAL_TIC_TAC_TOE_H
 
-
-
-
-#include <bits/stdc++.h>
-#include "connect_four.h"
-#include "numerical_tic_tac_toe.h"
-using namespace std;
-
-int main() {
-    // Create a ConnectFourBoard object
-   /* int choice;
-    Player<char>* players[2];  // Array to store the two players
-    ConnectFourBoard<char>* board = new ConnectFourBoard<char>();  // Create a new board
-    string playerXName, player2Name;
-
-    // Set up Player 1 (X)
-    cout << "Enter Player X name: ";
-    cin >> playerXName;
-
-    cout << "Choose Player X type:\n";
-    cout << "1. Human\n";
-    cout << "2. Random Computer\n";
-    cin >> choice;
-
-    // Create Player 1 based on the choice
-    switch(choice) {
-        case 1:
-            players[0] = new ConnectFourPlayer<char>(playerXName, 'X');
-            break;
-        case 2:
-           players[0] = new ConnectFourRandomPlayer<char>('X');
-            break;
-        default:
-            cout << "Invalid choice for Player 1. Exiting the game.\n";
-            return 1;  // Exit if invalid input
-    }
-
-    // Set up Player 2 (O)
-    cout << "Enter Player 2 name: ";
-    cin >> player2Name;
-
-    cout << "Choose Player 2 type:\n";
-    cout << "1. Human\n";
-    cout << "2. Random Computer\n";
-    cin >> choice;
-
-    // Create Player 2 based on the choice
-    switch(choice) {
-        case 1:
-            players[1] = new ConnectFourPlayer<char>(player2Name, 'O');  // Human player for Player O
-            break;
-        case 2:
-            players[1] = new ConnectFourRandomPlayer<char>('O');  // Random computer player for Player O
-            break;
-        default:
-            cout << "Invalid choice for Player 2. Exiting the game.\n";
-            return 1;  // Exit if invalid input
-    }
-
-    // Create the game manager and run the game
-    GameManager<char> connectFourGame(board, players);
-    connectFourGame.run();  // Run the game
-
-    // Clean up dynamically allocated memory
-    delete board;
-    for (int i = 0; i < 2; ++i) {
-        delete players[i];
-    }*/
-
-   int choice;
-    Player<char>* players[2];
-    numericalttt_board<char>* B = new numericalttt_board<char>();
-    string playerXName, player2Name;
-
-    cout << "Welcome to FCAI X-O Game. :)\n";
-
-    // Set up player 1
-    cout << "Enter Player X name: ";
-    cin >> playerXName;
-    cout << "Choose Player X type:\n";
-    cout << "1. Human\n";
-    cout << "2. Random Computer\n";
-    cin >> choice;
-
-    switch(choice) {
-        case 1:
-            cout<<"Enter even number: ";
-            int n;cin>>n;
-            players[0] = new numericalttt_player<char>(playerXName,n );
-            break;
-        case 2:
-            players[0] = new X_O_Random_Player<char>(n);
-            break;
-        default:
-            cout << "Invalid choice for Player 1. Exiting the game.\n";
-            return 1;
-    }
-
-    // Set up player 2
-    cout << "Enter Player 2 name: ";
-    cin >> player2Name;
-    cout << "Choose Player 2 type:\n";
-    cout << "1. Human\n";
-    cout << "2. Random Computer\n";
-    cin >> choice;
-
-    switch(choice) {
-        case 1:
-            cout<<"Enter odd number: "<<endl;
-            int n;cin>>n;
-            players[1] = new numericalttt_player<int>(player2Name, n);
-            break;
-        case 2:
-            players[1] = new numericalttt_random_player<int>(n);  // Use int consistently
-
-            break;
-        default:
-            cout << "Invalid choice for Player 2. Exiting the game.\n";
-            return 1;
-    }
-
-    // Create the game manager and run the game
-    GameManager<char> numerical_game(B, players);
-    numerical_game.run();
-
-    // Clean up
-    delete B;
-    for (int i = 0; i < 2; ++i) {
-        delete players[i];
-    }
 
     return 0;
 }
